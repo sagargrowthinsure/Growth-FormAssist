@@ -1,0 +1,285 @@
+/**
+ * Growth FormAssist - Saved Capture Styles
+ *
+ * Styles for the saved-capture collection and captured-field detail view.
+ * Kept separate from the core popup stylesheet to maintain small,
+ * maintainable CSS files.
+ */
+
+/**
+ * Saved capture section.
+ */
+.saved-captures-section {
+  margin: 0 16px 16px;
+  overflow: hidden;
+  border: 1px solid #e1e6ee;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+/**
+ * Saved capture header.
+ */
+.saved-captures-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e8ebf0;
+}
+
+.saved-captures-header h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.saved-captures-header p {
+  margin: 3px 0 0;
+  color: #7a8495;
+  font-size: 10px;
+}
+
+/**
+ * Refresh button.
+ */
+.icon-button {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #d9dee7;
+  border-radius: 7px;
+  color: #586174;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.icon-button:hover {
+  background: #f5f7fa;
+}
+
+/**
+ * Saved capture status.
+ */
+.capture-status {
+  padding: 8px 14px 0;
+  color: #687386;
+  font-size: 10px;
+}
+
+.capture-status.loading {
+  color: #586174;
+}
+
+.capture-status.error {
+  color: #b42318;
+}
+
+/**
+ * Saved capture collection.
+ */
+.capture-list {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/**
+ * Individual saved capture.
+ */
+.capture-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.capture-row:last-child {
+  border-bottom: 0;
+}
+
+.capture-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.capture-main strong {
+  display: block;
+  overflow: hidden;
+  color: #172033;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.capture-host,
+.capture-meta {
+  display: block;
+  overflow: hidden;
+  margin-top: 3px;
+  color: #7a8495;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/**
+ * Capture action buttons.
+ */
+.capture-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 5px;
+}
+
+.secondary-button,
+.danger-button {
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.secondary-button {
+  border: 1px solid #d9dee7;
+  color: #344054;
+  background: #ffffff;
+}
+
+.secondary-button:hover {
+  background: #f5f7fa;
+}
+
+.danger-button {
+  border: 1px solid #f0c7c3;
+  color: #b42318;
+  background: #fffafa;
+}
+
+.danger-button:hover {
+  background: #fff1f0;
+}
+
+.secondary-button:disabled,
+.danger-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+/**
+ * Empty saved-capture state.
+ */
+.capture-empty {
+  padding: 20px 14px;
+  color: #7a8495;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/**
+ * Capture detail header.
+ */
+.capture-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e8ebf0;
+}
+
+.capture-detail-title {
+  min-width: 0;
+}
+
+.capture-detail-title strong,
+.capture-detail-title span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.capture-detail-title strong {
+  color: #172033;
+  font-size: 12px;
+}
+
+.capture-detail-title span {
+  margin-top: 2px;
+  color: #7a8495;
+  font-size: 10px;
+}
+
+/**
+ * Captured field detail collection.
+ */
+.capture-field-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.captured-field-row {
+  padding: 10px 14px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.captured-field-row:last-child {
+  border-bottom: 0;
+}
+
+.captured-field-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.captured-field-main strong {
+  overflow: hidden;
+  color: #172033;
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.captured-field-main span {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: #586174;
+  background: #f0f2f5;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+/**
+ * Captured field value.
+ */
+.captured-field-value {
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+  color: #344054;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/**
+ * Captured field state.
+ */
+.captured-field-state {
+  margin-top: 4px;
+  color: #8b5e00;
+  font-size: 9px;
+}
+

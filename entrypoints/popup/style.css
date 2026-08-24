@@ -1,0 +1,255 @@
+/**
+ * Growth FormAssist - Popup Styles
+ *
+ * The popup is intentionally compact because it is an operational
+ * control surface for VAs, not the primary administration interface.
+ */
+
+:root {
+  font-family:
+    Inter, "Segoe UI", Roboto, Arial, sans-serif;
+
+  color: #172033;
+  background: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/**
+ * Base popup layout.
+ */
+body {
+  width: 380px;
+  min-width: 380px;
+  margin: 0;
+  background: #f6f8fb;
+}
+
+/**
+ * Main FormAssist container.
+ */
+.formassist-popup {
+  display: flex;
+  min-height: 420px;
+  flex-direction: column;
+}
+
+/**
+ * Popup branding header.
+ */
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 18px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e4e8ef;
+}
+
+/**
+ * Simple temporary brand mark.
+ */
+.brand-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 10px;
+  color: #ffffff;
+  background: #1f6feb;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/**
+ * Header typography.
+ */
+.popup-header h1 {
+  margin: 0;
+  color: #172033;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.popup-header p {
+  margin: 3px 0 0;
+  color: #687386;
+  font-size: 12px;
+}
+
+/**
+ * Scan controls.
+ */
+.scan-section {
+  padding: 16px;
+}
+
+.primary-button {
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #1f6feb;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.primary-button:hover {
+  background: #185abd;
+}
+
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+/**
+ * Scan status message.
+ */
+.status {
+  min-height: 18px;
+  margin-top: 10px;
+  color: #687386;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.status.error {
+  color: #b42318;
+}
+
+/**
+ * Detection results container.
+ */
+.results-section {
+  margin: 0 16px 16px;
+  overflow: hidden;
+  border: 1px solid #e1e6ee;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+/**
+ * Results header.
+ */
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e8ebf0;
+}
+
+.results-header h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.field-count {
+  display: inline-flex;
+  min-width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border-radius: 12px;
+  color: #185abd;
+  background: #e8f0fe;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/**
+ * Scrollable field list.
+ */
+.field-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/**
+ * Individual detected-field row.
+ */
+.field-row {
+  padding: 10px 14px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.field-row:last-child {
+  border-bottom: 0;
+}
+
+.field-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.field-main strong {
+  overflow: hidden;
+  color: #172033;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-main span {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #586174;
+  background: #f0f2f5;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+/**
+ * Field metadata and state information.
+ */
+.field-meta,
+.field-state {
+  margin-top: 4px;
+  overflow: hidden;
+  color: #7a8495;
+  font-size: 10px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-state {
+  color: #8b5e00;
+}
+
+/**
+ * Empty detection state.
+ */
+.empty-state {
+  padding: 22px 14px;
+  color: #7a8495;
+  font-size: 12px;
+  text-align: center;
+}
+
+/**
+ * Popup footer.
+ */
+.popup-footer {
+  margin-top: auto;
+  padding: 10px 16px;
+  color: #8a93a3;
+  background: #ffffff;
+  border-top: 1px solid #e4e8ef;
+  font-size: 10px;
+  text-align: center;
+}
+

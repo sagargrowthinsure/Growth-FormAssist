@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Growth FormAssist Detection Test</title>
+
+  <style>
+    /**
+     * Test harness styles.
+     */
+    body {
+      margin: 0;
+      padding: 40px;
+      color: #172033;
+      background: #f5f7fa;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 30px;
+      background: #ffffff;
+      border: 1px solid #dfe4ea;
+      border-radius: 12px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9px;
+      font: inherit;
+    }
+
+    .inline {
+      display: flex;
+      gap: 20px;
+    }
+
+    .inline label {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      font-weight: normal;
+    }
+
+    .inline input {
+      width: auto;
+    }
+
+    [role="combobox"],
+    [role="checkbox"] {
+      padding: 10px;
+      border: 1px solid #aeb7c4;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>FormAssist Detection Test</h1>
+
+    <p>
+      This page contains representative native and modern form controls.
+      Use the Growth FormAssist popup to scan this page.
+    </p>
+
+    <form id="test-form" action="/test-submit">
+
+      <div class="field">
+        <label for="first-name">First Name</label>
+        <input
+          id="first-name"
+          name="firstName"
+          type="text"
+          placeholder="Enter first name"
+          required
+        >
+      </div>
+
+      <div class="field">
+        <label for="year-built">Year Built</label>
+        <input
+          id="year-built"
+          name="yearBuilt"
+          type="number"
+          value="2012"
+          required
+        >
+      </div>
+
+      <div class="field">
+        <label for="effective-date">Effective Date</label>
+        <input
+          id="effective-date"
+          name="effectiveDate"
+          type="date"
+        >
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+        >
+      </div>
+
+      <div class="field">
+        <label for="comments">Comments</label>
+        <textarea
+          id="comments"
+          name="comments"
+          rows="4"
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label for="coverage">Coverage</label>
+        <select id="coverage" name="coverage">
+          <option value="">Select coverage</option>
+          <option value="5000">$5,000</option>
+          <option value="10000">$10,000</option>
+          <option value="25000">$25,000</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <span>Policy Type</span>
+
+        <div class="inline">
+          <label>
+            <input
+              type="radio"
+              name="policyType"
+              value="home"
+            >
+            Home
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              name="policyType"
+              value="auto"
+            >
+            Auto
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="inline">
+          <input
+            type="checkbox"
+            name="waterBackup"
+            value="yes"
+          >
+          Water Backup
+        </label>
+      </div>
+
+      <div class="field">
+        <label
+          id="custom-coverage-label"
+          for="custom-coverage"
+        >
+          Custom Coverage
+        </label>
+
+        <div
+          id="custom-coverage"
+          role="combobox"
+          aria-labelledby="custom-coverage-label"
+          aria-expanded="false"
+        >
+          Select custom coverage
+        </div>
+      </div>
+
+      <div class="field">
+        <div
+          role="checkbox"
+          aria-checked="false"
+          aria-label="Paperless billing"
+        >
+          Paperless Billing
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="readonly-field">Read-only Example</label>
+        <input
+          id="readonly-field"
+          name="readonlyField"
+          type="text"
+          value="Read only"
+          readonly
+        >
+      </div>
+
+      <div class="field">
+        <label for="disabled-field">Disabled Example</label>
+        <input
+          id="disabled-field"
+          name="disabledField"
+          type="text"
+          disabled
+        >
+      </div>
+
+      <button type="submit">
+        Test Submit
+      </button>
+
+    </form>
+  </main>
+</body>
+</html>
+
