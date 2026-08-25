@@ -6,6 +6,7 @@
  *
  * Responsibilities:
  * - Detect supported form controls.
+ * - Display the floating FormAssist UI.
  * - Perform explicit Alt+Click capture actions.
  * - Collect page identity and field values after user approval.
  * - Send captured templates to the background service worker.
@@ -13,6 +14,18 @@
  *
  * The content script never captures data silently.
  */
+
+import {
+  createCarrierFieldMap,
+} from '../src/carrier-mapping';
+
+import {
+  discoverCarrierPage,
+} from '../src/carrier-detection/carrier-discovery';
+
+import {
+  mountFormAssistFloatingUi,
+} from '../src/content/formassist-floating-ui';
 
 import type {
   AutofillPageMessage,
@@ -33,25 +46,30 @@ import type {
   CapturedFormTemplate,
 } from '../src/capture/types';
 
-/**
- * Maximum time FormAssist will wait for the background service worker
- * to respond to a capture request.
- */
 const CAPTURE_RESPONSE_TIMEOUT_MS = 10000;
 
 /**
  * Register the FormAssist content script.
  */
 export default defineContentScript({
-  /**
-   * FormAssist operates on normal HTTP and HTTPS webpages.
-   *
-   * Capture, scanning, and autofill are always explicitly initiated
-   * by the VA.
-   */
   matches: ['*://*/*'],
 
   main() {
+    /**
+     * Mount the primary FormAssist UI directly inside the webpage.
+     *
+     * This is important for carrier applications such as Travelers
+     * that open their quote workflow in a separate browser window
+     * where the extension toolbar is not visible.
+     */
+    mountFormAssistFloatingUi(
+      document,
+      {
+        onScan:
+          handleFloatingUiScan,
+      },
+    );
+
     /**
      * Register the explicit Alt+Click capture gesture.
      */
@@ -71,6 +89,270 @@ export default defineContentScript({
 });
 
 /**
+ * Scan the current carrier page and build the in-memory
+ * centralized carrier field map.
+ *
+ * Important:
+ * - This does NOT save customer/quote values.
+ * - This does NOT modify the carrier page.
+ * - This does NOT persist anything yet.
+ *
+ * It creates the shared structural definition of the carrier page.
+ */
+function handleFloatingUiScan():
+  {
+    carrierName: string;
+    fieldCount: number;
+    fields: Array<{
+      index: number;
+      label: string;
+      fieldType: string;
+      value: string;
+      checked: boolean | null;
+      id: string;
+      name: string;
+      required: boolean;
+      disabled: boolean;
+      readonly: boolean;
+      options: number;
+      carrierLabel: string;
+      coverageCode: string;
+    }>;
+  } {
+  const fields =
+    detectFields(document);
+
+  const discovery =
+    discoverCarrierPage(
+      document,
+      fields,
+    );
+
+  const pageUrl =
+    new URL(
+      window.location.href,
+    );
+
+  /**
+   * The hash is important for carrier applications such as
+   * Travelers because different quote sections are represented
+   * by routes such as:
+   *
+   * #/home/homeCoverage
+   *
+   * #/home/homeResidence
+   *
+   * etc.
+   */
+  const pageKey =
+    [
+      pageUrl.pathname,
+      pageUrl.hash,
+    ]
+      .join('')
+      .replace(/^\/+/, '')
+      .replace(/^#+/, '')
+      .replace(/[^a-zA-Z0-9/_-]+/g, '-');
+
+  const carrierPage = {
+    carrierId:
+      normalizeCarrierId(
+        discovery.page.carrierName,
+      ),
+
+    carrierName:
+      discovery.page.carrierName,
+
+    pageKey:
+      pageKey ||
+      'unknown-page',
+
+    pageTitle:
+      document.title.trim(),
+
+    origin:
+      pageUrl.origin,
+
+    pathname:
+      pageUrl.pathname,
+  };
+
+  const carrierMetadata =
+    fields.map(
+      (_field, index) =>
+        discovery
+          .fieldMetadata[index] ?? {
+          dataLabel: null,
+          dataCoverageCode: null,
+        },
+    );
+
+  const carrierFieldMap =
+    createCarrierFieldMap(
+      carrierPage,
+      fields,
+      carrierMetadata,
+    );
+
+  if (import.meta.env.DEV) {
+    console.info(
+      '[Growth FormAssist] Carrier field map created:',
+      carrierFieldMap,
+    );
+
+    console.info(
+      '[Growth FormAssist] Carrier page:',
+      carrierFieldMap.page,
+    );
+
+    console.info(
+      '[Growth FormAssist] Carrier fields:',
+      carrierFieldMap.fields.length,
+    );
+
+    console.info(
+      '[Growth FormAssist] Unmapped fields:',
+      carrierFieldMap.fields.filter(
+        (field) =>
+          field.mappingStatus ===
+          'unmapped',
+      ).length,
+    );
+
+    console.table(
+      carrierFieldMap.fields.map(
+        (field) => ({
+          id:
+            field.id,
+
+          kind:
+            field.kind,
+
+          label:
+            field.carrierLabel ||
+            field.fingerprint.label ||
+            '',
+
+          coverageCode:
+            field.coverageCode ||
+            '',
+
+          type:
+            field.fieldType,
+
+          mapping:
+            field.mappingStatus,
+
+          canonical:
+            field.canonicalField ||
+            '',
+
+          domId:
+            field.fingerprint.id ||
+            '',
+
+          name:
+            field.fingerprint.name ||
+            '',
+        }),
+      ),
+    );
+  }
+
+  return {
+    carrierName:
+      carrierFieldMap.page.carrierName,
+
+    fieldCount:
+      carrierFieldMap.fields.length,
+
+    fields:
+      carrierFieldMap.fields.map(
+        (field) => ({
+          index:
+            field.scanIndex,
+
+          label:
+            field.carrierLabel ||
+            field.fingerprint.label ||
+            field.fingerprint.ariaLabel ||
+            field.fingerprint.name ||
+            field.fingerprint.id ||
+            '',
+
+          fieldType:
+            field.fieldType,
+
+          /**
+           * These are displayed only for diagnostics.
+           *
+           * They are NOT stored in CarrierFieldMap.
+           */
+          value:
+            fields[field.scanIndex]?.value ??
+            '',
+
+          checked:
+            fields[field.scanIndex]?.checked ??
+            null,
+
+          id:
+            field.fingerprint.id ||
+            '',
+
+          name:
+            field.fingerprint.name ||
+            '',
+
+          required:
+            field.required,
+
+          disabled:
+            field.disabled,
+
+          readonly:
+            field.readonly,
+
+          options:
+            field.options.length,
+
+          carrierLabel:
+            field.carrierLabel ||
+            '',
+
+          coverageCode:
+            field.coverageCode ||
+            '',
+        }),
+      ),
+  };
+}
+
+/**
+ * Normalize the carrier name into a stable internal identifier.
+ *
+ * Example:
+ *
+ * Travelers
+ *   ↓
+ * travelers
+ */
+function normalizeCarrierId(
+  carrierName: string,
+): string {
+  return carrierName
+    .trim()
+    .toLowerCase()
+    .replace(
+      /[^a-z0-9]+/g,
+      '-',
+    )
+    .replace(
+      /^-+|-+$/g,
+      '');
+}
+
+/**
  * Handle an Alt+Click performed by the VA.
  */
 function handleCaptureClick(
@@ -80,18 +362,19 @@ function handleCaptureClick(
     return;
   }
 
-  const target = event.target;
+  const target =
+    event.target;
 
-  if (!(target instanceof HTMLElement)) {
+  if (
+    !(target instanceof HTMLElement)
+  ) {
     return;
   }
 
-  /**
-   * Only activate capture when the VA Alt+Clicks an actual
-   * supported form control or an element belonging to one.
-   */
   const field =
-    findSupportedField(target);
+    findSupportedField(
+      target,
+    );
 
   if (!field) {
     return;
@@ -100,7 +383,9 @@ function handleCaptureClick(
   event.preventDefault();
   event.stopPropagation();
 
-  void requestCapture(field);
+  void requestCapture(
+    field,
+  );
 }
 
 /**
@@ -124,7 +409,9 @@ function findSupportedField(
     '[role="button"]',
   ].join(',');
 
-  if (target.matches(selector)) {
+  if (
+    target.matches(selector)
+  ) {
     return target;
   }
 
@@ -271,17 +558,25 @@ function createCapturedTemplate():
     new URL(pageUrl);
 
   return {
-    id: createCaptureId(),
+    id:
+      createCaptureId(),
+
     capturedAt:
       new Date().toISOString(),
 
     page: {
-      url: pageUrl,
-      origin: parsedUrl.origin,
+      url:
+        pageUrl,
+
+      origin:
+        parsedUrl.origin,
+
       hostname:
         parsedUrl.hostname,
+
       pathname:
         parsedUrl.pathname,
+
       title:
         document.title.trim(),
     },
@@ -314,8 +609,9 @@ function createCaptureId(): string {
     randomValues[2]!,
     randomValues[3]!,
   ]
-    .map((value) =>
-      value.toString(16),
+    .map(
+      (value) =>
+        value.toString(16),
     )
     .join('-');
 }
@@ -354,34 +650,124 @@ function handleScanRequest(): unknown {
   const fields =
     detectFields(document);
 
+  const discovery =
+    discoverCarrierPage(
+      document,
+      fields,
+    );
+
+  if (import.meta.env.DEV) {
+    console.info(
+      '[Growth FormAssist] Page discovery:',
+      discovery.page,
+    );
+
+    console.info(
+      '[Growth FormAssist] Detected form controls:',
+      fields.length,
+    );
+
+    console.table(
+      fields.map(
+        (field, index) => ({
+          index:
+            field.index,
+
+          type:
+            field.fieldType,
+
+          tag:
+            field.fingerprint.tagName,
+
+          label:
+            field.fingerprint.label ||
+            '',
+
+          dataLabel:
+            discovery
+              .fieldMetadata[index]
+              ?.dataLabel ||
+            '',
+
+          coverageCode:
+            discovery
+              .fieldMetadata[index]
+              ?.dataCoverageCode ||
+            '',
+
+          id:
+            field.fingerprint.id ||
+            '',
+
+          name:
+            field.fingerprint.name ||
+            '',
+
+          required:
+            field.required,
+
+          disabled:
+            field.disabled,
+
+          readonly:
+            field.readonly,
+
+          options:
+            field.options.length,
+        }),
+      ),
+    );
+  }
+
   return {
     success: true,
-    fieldCount: fields.length,
+
+    page:
+      discovery.page,
+
+    fieldCount:
+      fields.length,
 
     fields:
-      fields.map((field) => ({
-        index: field.index,
-        fieldType:
-          field.fieldType,
+      fields.map(
+        (field, index) => ({
+          index:
+            field.index,
 
-        fingerprint: {
-          label:
-            field.fingerprint.label,
-          id:
-            field.fingerprint.id,
-          name:
-            field.fingerprint.name,
-        },
+          fieldType:
+            field.fieldType,
 
-        required:
-          field.required,
-        disabled:
-          field.disabled,
-        readonly:
-          field.readonly,
-        options:
-          field.options.length,
-      })),
+          fingerprint: {
+            label:
+              field.fingerprint.label,
+
+            id:
+              field.fingerprint.id,
+
+            name:
+              field.fingerprint.name,
+          },
+
+          carrierMetadata:
+            discovery
+              .fieldMetadata[index] ?? {
+              dataLabel: null,
+              dataCoverageCode: null,
+            },
+
+          required:
+            field.required,
+
+          disabled:
+            field.disabled,
+
+          readonly:
+            field.readonly,
+
+          options:
+            field.options.length,
+        }),
+      ),
   };
 }
 
@@ -401,10 +787,6 @@ function handleAutofillRequest(
       document,
     );
 
-  /**
-   * Give the webpage a short visual indication that the operation
-   * completed. This is intentionally separate from popup UI.
-   */
   showCaptureStatus(
     `Autofill completed: ${result.filledCount} fields filled.`,
     'success',
@@ -412,9 +794,11 @@ function handleAutofillRequest(
 
   return {
     success: true,
+
     matchedFields:
       result.filledCount +
       result.overwrittenCount,
+
     skippedFields:
       result.skippedCount +
       result.unmatchedCount,
@@ -422,8 +806,7 @@ function handleAutofillRequest(
 }
 
 /**
- * Convert unexpected capture failures into a useful message for
- * the VA without exposing technical implementation details.
+ * Convert unexpected capture failures into a useful message.
  */
 function getCaptureErrorMessage(
   error: unknown,
@@ -484,17 +867,18 @@ function showCaptureStatus(
   status.className =
     `formassist-capture-status formassist-${state}`;
 
-  status.textContent = message;
+  status.textContent =
+    message;
 
-  /**
-   * Keep the notification above the webpage's normal content and
-   * independent from the site's existing stylesheet.
-   */
   status.style.position =
     'fixed';
 
-  status.style.top = '20px';
-  status.style.right = '20px';
+  status.style.top =
+    '20px';
+
+  status.style.right =
+    '20px';
+
   status.style.zIndex =
     '2147483647';
 
@@ -519,18 +903,30 @@ function showCaptureStatus(
   status.style.fontFamily =
     'Arial, Helvetica, sans-serif';
 
-  status.style.fontSize = '14px';
-  status.style.fontWeight = '600';
-  status.style.lineHeight = '1.4';
-  status.style.color = '#111827';
+  status.style.fontSize =
+    '14px';
+
+  status.style.fontWeight =
+    '600';
+
+  status.style.lineHeight =
+    '1.4';
+
+  status.style.color =
+    '#111827';
 
   document.documentElement
     .appendChild(status);
 
-  if (state !== 'working') {
-    window.setTimeout(() => {
-      status.remove();
-    }, 3500);
+  if (
+    state !== 'working'
+  ) {
+    window.setTimeout(
+      () => {
+        status.remove();
+      },
+      3500,
+    );
   }
 }
 

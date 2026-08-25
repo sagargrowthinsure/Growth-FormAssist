@@ -10,7 +10,6 @@ import type {
   CapturedFormTemplate,
 } from '../capture/types';
 
-
 /**
  * Request the background service worker to scan the active tab.
  */
@@ -66,15 +65,28 @@ export interface AutofillPageMessage {
 
 /**
  * Lightweight field information returned by a page scan.
+ *
+ * This intentionally contains field identity and structural
+ * information only. Field values are never returned by the scan.
+ *
+ * Carrier-specific metadata is optional because different carriers
+ * expose different DOM attributes.
  */
 export interface ScanFieldSummary {
   index: number;
   fieldType: string;
+
   fingerprint: {
     label: string | null;
     id: string | null;
     name: string | null;
   };
+
+  carrierMetadata: {
+    dataLabel: string | null;
+    dataCoverageCode: string | null;
+  };
+
   required: boolean;
   disabled: boolean;
   readonly: boolean;
@@ -82,11 +94,34 @@ export interface ScanFieldSummary {
 }
 
 /**
+ * Page identity returned by a scan.
+ *
+ * This allows the centralized field-map system to distinguish
+ * one carrier/page from another without storing user-entered data.
+ */
+export interface ScanPageIdentity {
+  carrier:
+    | 'travelers'
+    | 'unknown';
+
+  carrierName: string;
+  hostname: string;
+  origin: string;
+  pathname: string;
+  hash: string;
+  title: string;
+}
+
+/**
  * Successful scan response.
  */
 export interface ScanSuccessResponse {
   success: true;
+
+  page: ScanPageIdentity;
+
   fieldCount: number;
+
   fields: ScanFieldSummary[];
 }
 
